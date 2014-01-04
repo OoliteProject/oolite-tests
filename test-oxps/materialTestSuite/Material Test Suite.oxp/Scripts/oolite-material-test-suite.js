@@ -2,11 +2,11 @@
 
 oolite-material-test-suite.js
 
-Test suite for Oolite's material model and default shader.
+Test suite for Oolite's material model.
 
 
 Oolite
-Copyright © 2004-2013 Giles C Williams and contributors
+Copyright © 2004-2014 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,9 +27,9 @@ MA 02110-1301, USA.
 
 
 this.name			= "oolite-material-test-suite";
-this.version		= "1.2";
+this.version		= "1.3";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2010-2013 the Oolite team.";
+this.copyright		= "© 2010-2014 the Oolite team.";
 
 
 this.startUp = function()
@@ -48,7 +48,7 @@ this.startUp = function()
 	
 	this.shadyTestCount = 16;
 	this.nonShadyTestCount = 7;
-	
+	this.haveShaders = (debugConsole.maximumDetailLevel != "DETAIL_LEVEL_MINIMUM");
 	
 	this.runMaterialTestSuite = function ()
 	{
@@ -59,15 +59,9 @@ this.startUp = function()
 		}
 		
 		// Show instruction/confirmation screen.
-		var substitutions = { shady_count :this.shadyTestCount, non_shady_count: this.nonShadyTestCount };
-		substitutions.count_string = expandMissionText("oolite_material_test_count_" + debugConsole.maximumShaderMode, substitutions);
+		var substitutions = { shady_count: this.shadyTestCount, non_shady_count: this.nonShadyTestCount };
+		substitutions.count_string = expandMissionText("oolite_material_test_count_" + (this.haveShaders ? "shaders" : "no_shaders"), substitutions);
 		var introText = expandMissionText("oolite_material_test_confirmation", substitutions);
-		
-		if (substitutions.count_string === null)
-		{
-			log("materialTest.error.unknownMode", "Shader test suite cannot run because maximum shader mode \"" + debugConsole.maximumShaderMode + "\" is not recognised.");
-			return;
-		}
 		
 		if (!mission.runScreen({ titleKey: "oolite_material_test_title", message: introText, choicesKey: "oolite_material_test_confirmation_choices" }, this.startTest, this))
 		{
@@ -99,41 +93,19 @@ this.startUp = function()
 	{
 		if (resonse != "A_CONTINUE")  return;
 		
-		this.originalShaderMode = debugConsole.shaderMode;
-		this.originalReducedDetailMode = debugConsole.reducedDetailMode;
+		this.originalDetailLevel = debugConsole.detailLevel;
 		this.originalDebugFlags = debugConsole.debugFlags;
 		this.passID = 1;
 		this.nextTestIndex = 1;
 		this.originalHUD = player.ship.hud;
 		
-		this.shipWillLaunchFromStation = function () { log("materialTest.cancelled", "Shader test suite cancelled by exiting station."); this.performCleanUp(); }
-		
-		var supportString;
-		var shady = false;
-		switch (debugConsole.maximumShaderMode)
+		this.shipWillLaunchFromStation = function ()
 		{
-			case "SHADERS_NOT_SUPPORTED":
-				supportString = "not supported";
-				this.maxPassID = 1;
-				break;
-				
-			case "SHADERS_SIMPLE":
-				supportString = "supported in simple mode only";
-				this.maxPassID = 2;
-				shady = true;
-				break;
-				
-			case "SHADERS_FULL":
-				supportString = "fully supported";
-				this.maxPassID = 3;
-				shady = true;
-				break;
-				
-			default:
-				log("materialTest.error.unknownMode", "Shader test suite cannot run because maximum shader mode \"" + debugConsole.maximumShaderMode + "\" is not recognised.");
-				this.performCleanUp();
-				return;
+			log("materialTest.cancelled", "Material test suite cancelled by exiting station.");
+			this.performCleanUp();
 		}
+		
+		this.maxPassID = (this.haveShaders ? 2 : 1);
 		
 		debugConsole.writeLogMarker();
 		var startString = "Starting material test suite " + this.version +
@@ -141,8 +113,8 @@ this.startUp = function()
 		                  " and " + debugConsole.platformDescription +
 		                  " with OpenGL renderer \"" + debugConsole.glRendererString +
 		                  "\", vendor \"" + debugConsole.glVendorString +
-		                  "\"; shaders are " + supportString;
-		if (shady)
+						  "\"; shaders are " + this.haveShaders ? "supported" : "not supported";
+		if (this.haveShaders)
 		{
 			startString += ", texture image unit count is " + debugConsole.glFragmentShaderTextureUnitCount;
 		}
@@ -157,16 +129,14 @@ this.startUp = function()
 	
 	this.performCleanUp = function ()
 	{
-		debugConsole.shaderMode = this.originalShaderMode;
-		debugConsole.reducedDetailMode = this.originalReducedDetailMode;
+		debugConsole.detailLevel = this.originalDetailLevel;
 		debugConsole.debugFlags = this.originalDebugFlags;
 		player.ship.hud = this.originalHUD;
 		
 		delete this.passID;
 		delete this.maxPassID;
 		delete this.nextTestIndex;
-		delete this.originalShaderMode;
-		delete this.originalReducedDetailMode;
+		delete this.originalDetailLevel;
 		delete this.originalDisplayFPS;
 		delete this.originalDebugFlags;
 		delete this.shipWillLaunchFromStation;
@@ -179,19 +149,13 @@ this.startUp = function()
 		{},
 		{
 			passName: "fixed-function",
-			shaderMode: "SHADERS_OFF",
+			detailLevel: "DETAIL_LEVEL_MINIMUM",
 			maxIndex: this.nonShadyTestCount,
 			rolePrefix: "oolite_non_shader_test_suite_"
 		},
 		{
-			passName: "simple",
-			shaderMode: "SHADERS_SIMPLE",
-			maxIndex: this.shadyTestCount,
-			rolePrefix: "oolite_shader_test_suite_"
-		},
-		{
-			passName: "full",
-			shaderMode: "SHADERS_FULL",
+			passName: "shaders",
+			detailLevel: "DETAIL_LEVEL_SHADERS",
 			maxIndex: this.shadyTestCount,
 			rolePrefix: "oolite_shader_test_suite_"
 		}
@@ -213,7 +177,6 @@ this.startUp = function()
 			else
 			{
 				// All passes have run, we're done.
-				var shady = this.maxPassID == 1;
 				this.performCleanUp();
 				
 				var substitutions =
@@ -222,9 +185,9 @@ this.startUp = function()
 					gl_renderer_string: debugConsole.glRendererString,
 					gl_tex_image_unit_count: debugConsole.glFragmentShaderTextureUnitCount
 				};
-				var message = expandMissionText(shady ? "oolite_material_test_completion_no_shaders" : "oolite_material_test_completion_shaders", substitutions);
+				var message = expandMissionText("oolite_material_test_completion_" + (this.haveShaders ? "shaders" : "no_shaders"), substitutions);
 				
-				log("materialTest.complete", "Shader test suite complete.");
+				log("materialTest.complete", "Material test suite complete.");
 				debugConsole.writeLogMarker();
 				mission.runScreen({ titleKey: "oolite_material_test_title", message: message }, function () {});
 				return;
@@ -240,12 +203,10 @@ this.startUp = function()
 		ship.remove();
 		
 		// Ensure environment is what we need - each time in case user tries to be clever.
-		debugConsole.shaderMode = passData.shaderMode;
-		debugConsole.reducedDetailMode = false;
+		debugConsole.detailLevel = passData.detailLevel;
 		debugConsole.debugFlags |= debugConsole.DEBUG_NO_SHADER_FALLBACK | debugConsole.DEBUG_SHADER_VALIDATION;
 		
 		// Actually run the test.
-		var passNames = ["", "fixed-function", "simple", "full"];
 		var testLabel = passData.passName + ":" + testIndex;
 		log("materialTest.runTest", "Running test " + testLabel + " (" + testDesc + ").");
 		
