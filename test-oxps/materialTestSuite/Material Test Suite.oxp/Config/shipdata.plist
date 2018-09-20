@@ -295,7 +295,7 @@
 			{
 				diffuse_map = "oolite_shader_test_suite_diffuse_blank.png";
 				gloss = 0.65;
-				specular_color = (1.0, 1.0, 1.0, 1.0);
+				specular_modulate_color = (1.0, 1.0, 1.0, 1.0);
 				specular_map = "oolite_shader_test_suite_13_specular.png";
 			};
 		};
@@ -318,14 +318,14 @@
 				diffuse_map = "";
 				diffuse_color = (129, 129, 129);
 				gloss = 0.8;
-				specular_color = (1.0, 1.0, 1.0, 1.0);
+				specular_modulate_color = (0.75, 0.75, 0.25, 1.0);
 				specular_map = "oolite_shader_test_suite_14_specular.png";
 			};
 		};
 		
 		script_info =
 		{
-			oolite_material_test_suite_label = "specular_map only";
+			oolite_material_test_suite_label = "specular_map only with modulate color";
 		};
 	};
 	
@@ -342,7 +342,7 @@
 				emission_map = "oolite_shader_test_suite_15_emission.png";
 				emission_modulate_color = (140, 255, 140);
 				gloss = 0.65;
-				specular_color = (1.0, 1.0, 1.0, 1.0);
+				specular_modulate_color = (1.0, 1.0, 1.0, 1.0);
 				specular_map = "oolite_shader_test_suite_specular_blank.png";
 			};
 		};
@@ -368,7 +368,7 @@
 				gloss = 1.0;
 				illumination_map = "oolite_shader_test_suite_illumination.png";
 				illumination_modulate_color = (180, 180, 200);
-				specular_color = (1.0, 1.0, 1.0, 1.0);
+				specular_modulate_color = (1.0, 1.0, 1.0, 1.0);
 				specular_map = "oolite_shader_test_suite_specular_blank_noring.png";
 				normal_and_parallax_map = "oolite_shader_test_suite_normal_and_parallax.png";
 				parallax_scale = -0.04;
