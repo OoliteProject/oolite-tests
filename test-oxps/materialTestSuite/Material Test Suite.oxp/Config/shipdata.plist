@@ -381,6 +381,29 @@
 		};
 	};
 	
+	oolite_shader_test_suite_17 =
+	{
+		like_ship = "oolite_shader_test_suite_base";
+		roles = "oolite_shader_test_suite_17";
+		
+		shaders =
+		{
+			"cube-face" =
+			{
+				diffuse_map = "oolite_shader_test_suite_diffuse_blank.png";
+				// gloss is contained in the alpha channel of the specular map
+				specular_map = "oolite_shader_test_suite_17_spec_gloss.png";
+				normal_map = "oolite_shader_test_suite_17_normal.png";
+				gloss = 0.8;
+			};
+		};
+		
+		script_info =
+		{
+			oolite_material_test_suite_label = "diffuse_map + normal_map + specular_and_gloss_map";
+		};
+	};
+	
 	oolite_non_shader_test_suite_1 =
 	{
 		like_ship = "oolite_shader_test_suite_base";

@@ -49,7 +49,7 @@ this.startUp = function()
 	}
 	
 	
-	this.shadyTestCount = 16;
+	this.shadyTestCount = 17;
 	this.nonShadyTestCount = 7;
 	this.haveShaders = (debugConsole.maximumDetailLevel != "DETAIL_LEVEL_MINIMUM");
 	
